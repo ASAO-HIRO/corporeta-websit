@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>💪 マッスルトレーニング!</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg1: #1a1a2e;
+    --bg2: #16213e;
+    --accent: #ff6b35;
+    --gold: #ffd700;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    min-height: 100%;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overflow-x: hidden;
+  }
+
+  #game {
+    width: 100%;
+    max-width: 480px;
+    padding: 12px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  h1 {
+    font-size: 22px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 12px rgba(255, 107, 53, .8);
+    margin-top: 4px;
+  }
+
+  /* ---- status bar ---- */
+  #status {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,.06);
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+  #status .val { font-weight: bold; color: var(--gold); font-size: 18px; }
+  #rank-name { color: var(--accent); font-weight: bold; font-size: 15px; }
+
+  /* ---- muscle EXP bar ---- */
+  #expwrap {
+    width: 100%;
+    background: rgba(255,255,255,.1);
+    border-radius: 999px;
+    height: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.2);
+  }
+  #expbar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff6b35, #ffd700);
+    border-radius: 999px;
+    transition: width .25s ease-out;
+  }
+
+  /* ---- character ---- */
+  #stage {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 4px 0;
+  }
+  #character { display: block; }
+
+  #judgement {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 34px;
+    font-weight: 900;
+    pointer-events: none;
+    opacity: 0;
+    white-space: nowrap;
+  }
+  #judgement.pop { animation: judgepop .7s ease-out; }
+  @keyframes judgepop {
+    0%   { opacity: 0; transform: translateX(-50%) scale(.4); }
+    20%  { opacity: 1; transform: translateX(-50%) scale(1.25); }
+    50%  { opacity: 1; transform: translateX(-50%) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) scale(1) translateY(-24px); }
+  }
+
+  #exercise-label {
+    font-size: 16px;
+    background: rgba(255,255,255,.08);
+    padding: 4px 18px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+  }
+
+  #combo {
+    height: 24px;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--gold);
+    text-shadow: 0 0 8px rgba(255,215,0,.6);
+  }
+
+  /* ---- timing gauge ---- */
+  #gaugewrap {
+    width: 100%;
+    position: relative;
+    height: 44px;
+    background: rgba(0,0,0,.45);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,.25);
+  }
+  .zone { position: absolute; top: 0; bottom: 0; }
+  #zone-good    { background: rgba(80, 200, 120, .35); }
+  #zone-perfect { background: rgba(255, 215, 0, .55); }
+  #needle {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 5px;
+    background: #fff;
+    box-shadow: 0 0 10px #fff, 0 0 20px var(--accent);
+    border-radius: 3px;
+    will-change: left;
+  }
+
+  /* ---- main button ---- */
+  #pressbtn {
+    width: 100%;
+    padding: 18px 0;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #fff;
+    background: linear-gradient(180deg, #ff8c42, #ff6b35);
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 6px 0 #c44a1a, 0 10px 20px rgba(0,0,0,.4);
+    cursor: pointer;
+    transition: transform .05s, box-shadow .05s;
+    font-family: inherit;
+  }
+  #pressbtn:active {
+    transform: translateY(5px);
+    box-shadow: 0 1px 0 #c44a1a, 0 4px 10px rgba(0,0,0,.4);
+  }
+  #pressbtn:disabled { filter: grayscale(.7); opacity: .6; }
+
+  #hint { font-size: 12px; opacity: .65; }
+
+  /* ---- overlay (start / levelup / result) ---- */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 25, .88);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    z-index: 10;
+    text-align: center;
+    padding: 24px;
+  }
+  #overlay.hidden { display: none; }
+  #overlay h2 { font-size: 30px; color: var(--gold); text-shadow: 0 0 16px rgba(255,215,0,.7); }
+  #overlay p { font-size: 15px; line-height: 1.9; opacity: .9; }
+  #overlay .bigmoji { font-size: 64px; }
+  #overlay button {
+    padding: 14px 46px;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #fff;
+    background: linear-gradient(180deg, #ff8c42, #ff6b35);
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 5px 0 #c44a1a;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  #overlay button:active { transform: translateY(4px); box-shadow: 0 1px 0 #c44a1a; }
+
+  .flash { animation: flashy .35s ease-out; }
+  @keyframes flashy {
+    0% { filter: brightness(2.2) saturate(2); }
+    100% { filter: none; }
+  }
+
+  .shake { animation: shakey .3s ease-in-out; }
+  @keyframes shakey {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <h1>💪 マッスルトレーニング!</h1>
+
+  <div id="status">
+    <div>Lv.<span class="val" id="level">1</span></div>
+    <div id="rank-name">ガリガリ</div>
+    <div>筋肉 <span class="val" id="muscle">0</span></div>
+  </div>
+
+  <div id="expwrap"><div id="expbar"></div></div>
+
+  <div id="stage">
+    <svg id="character" width="220" height="230" viewBox="0 0 220 230">
+      <!-- legs -->
+      <rect id="leg-l" x="88" y="165" width="16" height="52" rx="8" fill="#3b5bdb"/>
+      <rect id="leg-r" x="116" y="165" width="16" height="52" rx="8" fill="#3b5bdb"/>
+      <!-- torso -->
+      <path id="torso" d="" fill="#f4b183"/>
+      <!-- pecs -->
+      <ellipse id="pec-l" cx="96" cy="112" rx="14" ry="10" fill="#e8a06c"/>
+      <ellipse id="pec-r" cx="124" cy="112" rx="14" ry="10" fill="#e8a06c"/>
+      <!-- abs -->
+      <g id="abs" fill="#e8a06c" opacity="0">
+        <rect x="97" y="132" width="11" height="9" rx="3"/>
+        <rect x="112" y="132" width="11" height="9" rx="3"/>
+        <rect x="97" y="144" width="11" height="9" rx="3"/>
+        <rect x="112" y="144" width="11" height="9" rx="3"/>
+      </g>
+      <!-- arms: upper arm + bicep bulge -->
+      <g id="arm-l">
+        <rect id="uarm-l" x="52" y="100" width="34" height="14" rx="7" fill="#f4b183"/>
+        <circle id="bicep-l" cx="56" cy="100" r="12" fill="#f4b183"/>
+        <circle id="fist-l" cx="52" cy="82" r="9" fill="#e8a06c"/>
+        <rect id="farm-l" x="48" y="82" width="12" height="24" rx="6" fill="#f4b183"/>
+      </g>
+      <g id="arm-r">
+        <rect id="uarm-r" x="134" y="100" width="34" height="14" rx="7" fill="#f4b183"/>
+        <circle id="bicep-r" cx="164" cy="100" r="12" fill="#f4b183"/>
+        <circle id="fist-r" cx="168" cy="82" r="9" fill="#e8a06c"/>
+        <rect id="farm-r" x="160" y="82" width="12" height="24" rx="6" fill="#f4b183"/>
+      </g>
+      <!-- head -->
+      <circle cx="110" cy="62" r="26" fill="#f4b183"/>
+      <path d="M 84 56 Q 110 30 136 56 L 136 48 Q 110 26 84 48 Z" fill="#4a3728"/>
+      <circle id="eye-l" cx="101" cy="60" r="3" fill="#222"/>
+      <circle id="eye-r" cx="119" cy="60" r="3" fill="#222"/>
+      <path id="mouth" d="M 102 74 Q 110 80 118 74" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- sweat drop -->
+      <path id="sweat" d="M 140 46 q 5 8 0 11 q -5 -3 0 -11" fill="#7ec8ff" opacity="0"/>
+      <!-- aura for max level -->
+      <g id="aura" opacity="0">
+        <path d="M 40 200 Q 30 120 70 60 Q 60 130 75 195 Z" fill="#ffd700" opacity=".35"/>
+        <path d="M 180 200 Q 190 120 150 60 Q 160 130 145 195 Z" fill="#ffd700" opacity=".35"/>
+        <path d="M 110 18 Q 100 5 110 -8 Q 120 5 110 18" fill="#ffd700" opacity=".4"/>
+      </g>
+    </svg>
+    <div id="judgement"></div>
+  </div>
+
+  <div id="exercise-label">🏋️ ベンチプレス</div>
+  <div id="combo"></div>
+
+  <div id="gaugewrap">
+    <div class="zone" id="zone-good"></div>
+    <div class="zone" id="zone-perfect"></div>
+    <div id="needle"></div>
+  </div>
+
+  <button id="pressbtn">押せッ!!</button>
+  <div id="hint">ゲージが金色ゾーンに入った瞬間にボタン!(スペースキーでもOK)</div>
+</div>
+
+<div id="overlay">
+  <div class="bigmoji">💪</div>
+  <h2>マッスルトレーニング!</h2>
+  <p>
+    動くゲージが<b style="color:#ffd700">金色ゾーン</b>に入った瞬間にボタンを押せ!<br>
+    ジャストなら <b style="color:#ffd700">パーフェクト</b> で筋肉が超成長!<br>
+    タイミングを外すと筋肉がしぼんでしまうぞ…<br><br>
+    鍛えて鍛えて、<b style="color:#ff6b35">伝説の筋肉</b>を目指せ!!
+  </p>
+  <button id="startbtn">トレーニング開始!</button>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- config ----------
+  const RANKS = [
+    { name: 'ガリガリ',       exp: 0,    muscle: 0.0 },
+    { name: 'もやしっ子',     exp: 30,   muscle: 0.15 },
+    { name: 'ふつう',         exp: 80,   muscle: 0.3 },
+    { name: 'ちょいマッチョ', exp: 160,  muscle: 0.45 },
+    { name: 'マッチョ',       exp: 280,  muscle: 0.62 },
+    { name: 'ゴリマッチョ',   exp: 450,  muscle: 0.8 },
+    { name: '伝説の筋肉',     exp: 700,  muscle: 1.0 },
+  ];
+
+  const EXERCISES = [
+    '🏋️ ベンチプレス',
+    '🦵 スクワット',
+    '🙇 腕立て伏せ',
+    '💪 ダンベルカール',
+    '🤸 懸垂',
+    '🏃 バーピージャンプ',
+  ];
+
+  const PERFECT_GAIN = 12;
+  const GOOD_GAIN = 5;
+  const MISS_LOSS = 6;
+
+  // ---------- state ----------
+  let exp = 0;
+  let rankIdx = 0;
+  let combo = 0;
+  let bestCombo = 0;
+  let running = false;
+
+  // gauge state
+  let needlePos = 0;      // 0..1
+  let needleDir = 1;
+  let speed = 0.55;       // gauge widths per second
+  let zoneCenter = 0.5;   // 0..1
+  let goodHalf = 0.13;    // half width of good zone
+  let perfectHalf = 0.045;
+  let lastTime = 0;
+  let inputLocked = false;
+
+  // ---------- dom ----------
+  const $ = id => document.getElementById(id);
+  const needle = $('needle');
+  const zoneGood = $('zone-good');
+  const zonePerfect = $('zone-perfect');
+  const expbar = $('expbar');
+  const judgement = $('judgement');
+  const pressbtn = $('pressbtn');
+  const overlay = $('overlay');
+  const character = $('character');
+
+  // ---------- audio ----------
+  let actx = null;
+  function beep(freq, dur, type = 'square', vol = 0.15) {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator();
+      const g = actx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(vol, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+      o.connect(g).connect(actx.destination);
+      o.start();
+      o.stop(actx.currentTime + dur);
+    } catch (e) { /* audio unavailable */ }
+  }
+  const sndPerfect = () => { beep(880, .12, 'square'); setTimeout(() => beep(1320, .18, 'square'), 90); };
+  const sndGood = () => beep(660, .12, 'square');
+  const sndMiss = () => beep(140, .3, 'sawtooth', .2);
+  const sndLevelup = () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, .18, 'triangle', .2), i * 110));
+
+  // ---------- character drawing ----------
+  // m: 0..1 muscle amount
+  function drawCharacter(m) {
+    const lerp = (a, b) => a + (b - a) * m;
+
+    // torso: widens with muscle
+    const shoulderW = lerp(24, 52);   // half width at shoulders
+    const waistW = lerp(16, 34);      // half width at waist
+    const cx = 110, top = 88, bottom = 170;
+    $('torso').setAttribute('d',
+      `M ${cx - shoulderW} ${top}
+       Q ${cx} ${top - 10} ${cx + shoulderW} ${top}
+       L ${cx + waistW} ${bottom}
+       L ${cx - waistW} ${bottom} Z`);
+
+    // pecs
+    const pecR = lerp(8, 20);
+    const pecRy = lerp(5, 14);
+    const pecOff = lerp(11, 24);
+    for (const [id, sign] of [['pec-l', -1], ['pec-r', 1]]) {
+      const el = $(id);
+      el.setAttribute('cx', cx + sign * pecOff);
+      el.setAttribute('rx', pecR);
+      el.setAttribute('ry', pecRy);
+    }
+
+    // abs appear at 40%+
+    $('abs').setAttribute('opacity', m > 0.4 ? String((m - 0.4) / 0.6) : '0');
+
+    // arms
+    const armThick = lerp(8, 20);
+    const bicep = lerp(6, 20);
+    const armY = 100;
+    const armLen = lerp(30, 40);
+    for (const sign of [-1, 1]) {
+      const side = sign < 0 ? 'l' : 'r';
+      const shoulderX = cx + sign * (shoulderW - 4);
+      const elbowX = shoulderX + sign * armLen;
+      const ua = $('uarm-' + side);
+      ua.setAttribute('x', Math.min(shoulderX, elbowX));
+      ua.setAttribute('width', Math.abs(elbowX - shoulderX));
+      ua.setAttribute('y', armY - armThick / 2);
+      ua.setAttribute('height', armThick);
+      ua.setAttribute('rx', armThick / 2);
+      const bi = $('bicep-' + side);
+      bi.setAttribute('cx', shoulderX + sign * armLen * 0.55);
+      bi.setAttribute('cy', armY - bicep * 0.25);
+      bi.setAttribute('r', bicep);
+      const fa = $('farm-' + side);
+      const faW = lerp(10, 16);
+      fa.setAttribute('x', elbowX - faW / 2);
+      fa.setAttribute('width', faW);
+      fa.setAttribute('y', armY - 26);
+      $('fist-' + side).setAttribute('cx', elbowX);
+      $('fist-' + side).setAttribute('cy', armY - 30);
+    }
+
+    // legs
+    const legW = lerp(12, 22);
+    $('leg-l').setAttribute('x', cx - lerp(22, 30));
+    $('leg-l').setAttribute('width', legW);
+    $('leg-r').setAttribute('x', cx + lerp(22, 30) - legW);
+    $('leg-r').setAttribute('width', legW);
+
+    // aura at legendary
+    $('aura').setAttribute('opacity', m >= 1 ? '1' : '0');
+  }
+
+  // flex pose animation on success
+  function flexAnim() {
+    character.classList.remove('flash');
+    void character.offsetWidth;
+    character.classList.add('flash');
+    $('sweat').setAttribute('opacity', '1');
+    setTimeout(() => $('sweat').setAttribute('opacity', '0'), 500);
+  }
+
+  function sadAnim() {
+    character.classList.remove('shake');
+    void character.offsetWidth;
+    character.classList.add('shake');
+  }
+
+  // ---------- rank / exp ----------
+  function currentMuscle() {
+    // interpolate muscle between current rank and next by exp progress
+    const cur = RANKS[rankIdx];
+    const next = RANKS[rankIdx + 1];
+    if (!next) return 1;
+    const t = (exp - cur.exp) / (next.exp - cur.exp);
+    return cur.muscle + (next.muscle - cur.muscle) * Math.max(0, Math.min(1, t));
+  }
+
+  function refreshUI() {
+    $('level').textContent = rankIdx + 1;
+    $('rank-name').textContent = RANKS[rankIdx].name;
+    $('muscle').textContent = exp;
+    const cur = RANKS[rankIdx];
+    const next = RANKS[rankIdx + 1];
+    const pct = next ? ((exp - cur.exp) / (next.exp - cur.exp)) * 100 : 100;
+    expbar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    drawCharacter(currentMuscle());
+  }
+
+  function applyExp(delta) {
+    exp = Math.max(0, exp + delta);
+    let newIdx = 0;
+    for (let i = 0; i < RANKS.length; i++) if (exp >= RANKS[i].exp) newIdx = i;
+    if (newIdx > rankIdx) {
+      rankIdx = newIdx;
+      levelUp();
+    } else if (newIdx < rankIdx) {
+      rankIdx = newIdx;
+    }
+    refreshUI();
+  }
+
+  // ---------- judgement ----------
+  function showJudgement(text, color) {
+    judgement.textContent = text;
+    judgement.style.color = color;
+    judgement.classList.remove('pop');
+    void judgement.offsetWidth;
+    judgement.classList.add('pop');
+  }
+
+  function judge() {
+    if (!running || inputLocked) return;
+    const d = Math.abs(needlePos - zoneCenter);
+    if (d <= perfectHalf) {
+      combo++;
+      const bonus = Math.min(10, Math.floor(combo / 3));
+      applyExp(PERFECT_GAIN + bonus);
+      showJudgement('パーフェクト!!', '#ffd700');
+      sndPerfect();
+      flexAnim();
+    } else if (d <= goodHalf) {
+      combo++;
+      applyExp(GOOD_GAIN);
+      showJudgement('グッド!', '#51cf66');
+      sndGood();
+      flexAnim();
+    } else {
+      combo = 0;
+      applyExp(-MISS_LOSS);
+      showJudgement('ミス…', '#ff6b6b');
+      sndMiss();
+      sadAnim();
+    }
+    bestCombo = Math.max(bestCombo, combo);
+    $('combo').textContent = combo >= 2 ? `${combo} コンボ! 🔥` : '';
+
+    // brief lock then new round
+    inputLocked = true;
+    setTimeout(newRound, 450);
+  }
+
+  // ---------- rounds ----------
+  function newRound() {
+    inputLocked = false;
+    // randomize zone & direction; difficulty scales with rank
+    zoneCenter = 0.2 + Math.random() * 0.6;
+    speed = 0.55 + rankIdx * 0.14 + Math.random() * 0.1;
+    goodHalf = Math.max(0.07, 0.13 - rankIdx * 0.008);
+    perfectHalf = Math.max(0.028, 0.045 - rankIdx * 0.002);
+    needlePos = Math.random() < 0.5 ? 0 : 1;
+    needleDir = needlePos === 0 ? 1 : -1;
+    $('exercise-label').textContent = EXERCISES[Math.floor(Math.random() * EXERCISES.length)];
+    layoutZones();
+  }
+
+  function layoutZones() {
+    const W = $('gaugewrap').clientWidth;
+    const gl = (zoneCenter - goodHalf) * W;
+    const gw = goodHalf * 2 * W;
+    zoneGood.style.left = gl + 'px';
+    zoneGood.style.width = gw + 'px';
+    const pl = (zoneCenter - perfectHalf) * W;
+    const pw = perfectHalf * 2 * W;
+    zonePerfect.style.left = pl + 'px';
+    zonePerfect.style.width = pw + 'px';
+  }
+
+  function loop(t) {
+    if (running && !inputLocked) {
+      const dt = Math.min(0.05, (t - lastTime) / 1000);
+      needlePos += needleDir * speed * dt;
+      if (needlePos > 1) { needlePos = 1; needleDir = -1; }
+      if (needlePos < 0) { needlePos = 0; needleDir = 1; }
+      const W = $('gaugewrap').clientWidth;
+      needle.style.left = (needlePos * (W - 5)) + 'px';
+    }
+    lastTime = t;
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- level up / clear ----------
+  function levelUp() {
+    sndLevelup();
+    const isMax = rankIdx === RANKS.length - 1;
+    running = false;
+    const title = isMax ? '🏆 伝説の筋肉、爆誕!!' : '⬆️ レベルアップ!';
+    const moji = isMax ? '🏆' : ['🥚','🌱','🙂','😎','💪','🦍','👑'][rankIdx] || '💪';
+    overlay.querySelector('.bigmoji').textContent = moji;
+    overlay.querySelector('h2').textContent = title;
+    overlay.querySelector('p').innerHTML = isMax
+      ? `おめでとう!キミの筋肉は<b style="color:#ffd700">伝説</b>となった!!<br>最大コンボ: <b>${bestCombo}</b><br><br>まだまだ鍛え続けるのも自由だ💪`
+      : `<b style="color:#ff6b35">${RANKS[rankIdx].name}</b> に進化した!<br>ゲージが速くなり、ゾーンが狭くなるぞ…!`;
+    $('startbtn').textContent = isMax ? 'もっと鍛える!' : 'トレーニング再開!';
+    overlay.classList.remove('hidden');
+  }
+
+  // ---------- input ----------
+  pressbtn.addEventListener('click', judge);
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      e.preventDefault();
+      if (!overlay.classList.contains('hidden')) { start(); return; }
+      judge();
+    }
+  });
+
+  $('startbtn').addEventListener('click', start);
+
+  function start() {
+    overlay.classList.add('hidden');
+    running = true;
+    newRound();
+  }
+
+  window.addEventListener('resize', layoutZones);
+
+  // ---------- init ----------
+  refreshUI();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
