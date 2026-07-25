@@ -88,6 +88,77 @@
   }
   #character { display: block; }
 
+  /* exercise poses & motion */
+  #figure, #upper, #legs, #dumbbells, #barbell-fly, #barbell-back, #pullupbar {
+    transform-box: view-box;
+  }
+  #figure {
+    transform-origin: 110px 140px;
+    transition: transform .35s ease;
+  }
+  #legs  { transform-origin: 110px 217px; }
+  #upper { transform-origin: 110px 130px; }
+
+  .equip { visibility: hidden; }
+  svg.ex-bench  #barbell-fly  { visibility: visible; }
+  svg.ex-squat  #barbell-back { visibility: visible; }
+  svg.ex-curl   #dumbbells    { visibility: visible; }
+  svg.ex-pullup #pullupbar    { visibility: visible; }
+
+  /* lying poses */
+  svg.ex-bench  #figure { transform: translate(0px, -4px) rotate(-90deg); }
+  svg.ex-pushup #figure { transform: translate(0px, -4px) rotate(90deg); }
+
+  /* success motions (class "go" is added for one rep) */
+  svg.go.ex-bench #barbell-fly { animation: rep-press .68s ease; }
+  @keyframes rep-press {
+    0%, 100% { transform: translateY(0); }
+    40%, 65% { transform: translateY(-28px); }
+  }
+
+  svg.go.ex-squat #legs { animation: rep-squat-legs .68s ease; }
+  @keyframes rep-squat-legs {
+    0%, 100% { transform: scaleY(1); }
+    45% { transform: scaleY(.68); }
+  }
+  svg.go.ex-squat #upper { animation: rep-squat-upper .68s ease; }
+  @keyframes rep-squat-upper {
+    0%, 100% { transform: translateY(0); }
+    45% { transform: translateY(17px); }
+  }
+
+  svg.go.ex-pushup #figure { animation: rep-pushup .68s ease; }
+  @keyframes rep-pushup {
+    0%, 100% { transform: translate(0px, -4px) rotate(90deg); }
+    45% { transform: translate(0px, -26px) rotate(90deg); }
+  }
+
+  svg.go.ex-curl #dumbbells { animation: rep-curl .68s ease; }
+  @keyframes rep-curl {
+    0%, 100% { transform: translateY(0); }
+    40%, 62% { transform: translateY(-18px); }
+  }
+
+  svg.go.ex-pullup #figure { animation: rep-pullup .68s ease; }
+  @keyframes rep-pullup {
+    0%, 100% { transform: translateY(0); }
+    42%, 62% { transform: translateY(-22px); }
+  }
+
+  svg.go.ex-burpee #figure { animation: rep-burpee .68s ease; }
+  @keyframes rep-burpee {
+    0%, 100% { transform: translateY(0) scale(1, 1); }
+    22% { transform: translateY(6px) scale(1.06, .88); }
+    55% { transform: translateY(-30px) scale(.96, 1.06); }
+    80% { transform: translateY(2px) scale(1.03, .95); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    svg.go #figure, svg.go #legs, svg.go #upper,
+    svg.go #barbell-fly, svg.go #dumbbells { animation: none !important; }
+    #figure { transition: none; }
+  }
+
   #judgement {
     position: absolute;
     top: 8px;
@@ -232,42 +303,83 @@
 
   <div id="stage">
     <svg id="character" width="220" height="230" viewBox="0 0 220 230">
-      <!-- legs -->
-      <rect id="leg-l" x="88" y="165" width="16" height="52" rx="8" fill="#3b5bdb"/>
-      <rect id="leg-r" x="116" y="165" width="16" height="52" rx="8" fill="#3b5bdb"/>
-      <!-- torso -->
-      <path id="torso" d="" fill="#f4b183"/>
-      <!-- pecs -->
-      <ellipse id="pec-l" cx="96" cy="112" rx="14" ry="10" fill="#e8a06c"/>
-      <ellipse id="pec-r" cx="124" cy="112" rx="14" ry="10" fill="#e8a06c"/>
-      <!-- abs -->
-      <g id="abs" fill="#e8a06c" opacity="0">
-        <rect x="97" y="132" width="11" height="9" rx="3"/>
-        <rect x="112" y="132" width="11" height="9" rx="3"/>
-        <rect x="97" y="144" width="11" height="9" rx="3"/>
-        <rect x="112" y="144" width="11" height="9" rx="3"/>
+      <!-- pull-up bar (fixed to the "room", not the body) -->
+      <g id="pullupbar" class="equip">
+        <rect x="22" y="44" width="6" height="173" rx="3" fill="#6d4c41"/>
+        <rect x="192" y="44" width="6" height="173" rx="3" fill="#6d4c41"/>
+        <rect x="22" y="44" width="176" height="6" rx="3" fill="#8d6e63"/>
       </g>
-      <!-- arms: upper arm + bicep bulge -->
-      <g id="arm-l">
-        <rect id="uarm-l" x="52" y="100" width="34" height="14" rx="7" fill="#f4b183"/>
-        <circle id="bicep-l" cx="56" cy="100" r="12" fill="#f4b183"/>
-        <circle id="fist-l" cx="52" cy="82" r="9" fill="#e8a06c"/>
-        <rect id="farm-l" x="48" y="82" width="12" height="24" rx="6" fill="#f4b183"/>
+
+      <g id="figure">
+        <g id="legs">
+          <rect id="leg-l" x="88" y="165" width="16" height="52" rx="8" fill="#3b5bdb"/>
+          <rect id="leg-r" x="116" y="165" width="16" height="52" rx="8" fill="#3b5bdb"/>
+        </g>
+        <g id="upper">
+          <!-- squat barbell resting on the shoulders -->
+          <g id="barbell-back" class="equip">
+            <rect id="bbq-bar" x="40" y="82" width="140" height="6" rx="3" fill="#b0bec5"/>
+            <rect id="bbq-pl" x="36" y="70" width="9" height="30" rx="3" fill="#546e7a"/>
+            <rect id="bbq-pr" x="175" y="70" width="9" height="30" rx="3" fill="#546e7a"/>
+          </g>
+          <!-- torso -->
+          <path id="torso" d="" fill="#f4b183"/>
+          <!-- pecs -->
+          <ellipse id="pec-l" cx="96" cy="112" rx="14" ry="10" fill="#e8a06c"/>
+          <ellipse id="pec-r" cx="124" cy="112" rx="14" ry="10" fill="#e8a06c"/>
+          <!-- abs -->
+          <g id="abs" fill="#e8a06c" opacity="0">
+            <rect x="97" y="132" width="11" height="9" rx="3"/>
+            <rect x="112" y="132" width="11" height="9" rx="3"/>
+            <rect x="97" y="144" width="11" height="9" rx="3"/>
+            <rect x="112" y="144" width="11" height="9" rx="3"/>
+          </g>
+          <!-- arms: upper arm + bicep bulge -->
+          <g id="arm-l">
+            <rect id="uarm-l" x="52" y="100" width="34" height="14" rx="7" fill="#f4b183"/>
+            <circle id="bicep-l" cx="56" cy="100" r="12" fill="#f4b183"/>
+            <circle id="fist-l" cx="52" cy="82" r="9" fill="#e8a06c"/>
+            <rect id="farm-l" x="48" y="82" width="12" height="24" rx="6" fill="#f4b183"/>
+          </g>
+          <g id="arm-r">
+            <rect id="uarm-r" x="134" y="100" width="34" height="14" rx="7" fill="#f4b183"/>
+            <circle id="bicep-r" cx="164" cy="100" r="12" fill="#f4b183"/>
+            <circle id="fist-r" cx="168" cy="82" r="9" fill="#e8a06c"/>
+            <rect id="farm-r" x="160" y="82" width="12" height="24" rx="6" fill="#f4b183"/>
+          </g>
+          <!-- dumbbells held in the fists -->
+          <g id="dumbbells" class="equip">
+            <g id="db-l">
+              <rect x="-12" y="-2.5" width="24" height="5" rx="2" fill="#b0bec5"/>
+              <rect x="-17" y="-9" width="6" height="18" rx="2" fill="#546e7a"/>
+              <rect x="11" y="-9" width="6" height="18" rx="2" fill="#546e7a"/>
+            </g>
+            <g id="db-r">
+              <rect x="-12" y="-2.5" width="24" height="5" rx="2" fill="#b0bec5"/>
+              <rect x="-17" y="-9" width="6" height="18" rx="2" fill="#546e7a"/>
+              <rect x="11" y="-9" width="6" height="18" rx="2" fill="#546e7a"/>
+            </g>
+          </g>
+          <!-- head -->
+          <circle cx="110" cy="62" r="26" fill="#f4b183"/>
+          <path d="M 84 56 Q 110 30 136 56 L 136 48 Q 110 26 84 48 Z" fill="#4a3728"/>
+          <circle id="eye-l" cx="101" cy="60" r="3" fill="#222"/>
+          <circle id="eye-r" cx="119" cy="60" r="3" fill="#222"/>
+          <path id="mouth" d="M 102 74 Q 110 80 118 74" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- sweat drop -->
+          <path id="sweat" d="M 140 46 q 5 8 0 11 q -5 -3 0 -11" fill="#7ec8ff" opacity="0"/>
+        </g>
       </g>
-      <g id="arm-r">
-        <rect id="uarm-r" x="134" y="100" width="34" height="14" rx="7" fill="#f4b183"/>
-        <circle id="bicep-r" cx="164" cy="100" r="12" fill="#f4b183"/>
-        <circle id="fist-r" cx="168" cy="82" r="9" fill="#e8a06c"/>
-        <rect id="farm-r" x="160" y="82" width="12" height="24" rx="6" fill="#f4b183"/>
+
+      <!-- bench-press barbell hovering above the lying body's chest -->
+      <g id="barbell-fly" class="equip">
+        <rect x="22" y="78" width="130" height="6" rx="3" fill="#b0bec5"/>
+        <rect x="28" y="66" width="9" height="30" rx="3" fill="#546e7a"/>
+        <rect x="40" y="70" width="7" height="22" rx="3" fill="#78909c"/>
+        <rect x="127" y="70" width="7" height="22" rx="3" fill="#78909c"/>
+        <rect x="137" y="66" width="9" height="30" rx="3" fill="#546e7a"/>
       </g>
-      <!-- head -->
-      <circle cx="110" cy="62" r="26" fill="#f4b183"/>
-      <path d="M 84 56 Q 110 30 136 56 L 136 48 Q 110 26 84 48 Z" fill="#4a3728"/>
-      <circle id="eye-l" cx="101" cy="60" r="3" fill="#222"/>
-      <circle id="eye-r" cx="119" cy="60" r="3" fill="#222"/>
-      <path id="mouth" d="M 102 74 Q 110 80 118 74" stroke="#222" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <!-- sweat drop -->
-      <path id="sweat" d="M 140 46 q 5 8 0 11 q -5 -3 0 -11" fill="#7ec8ff" opacity="0"/>
+
       <!-- aura for max level -->
       <g id="aura" opacity="0">
         <path d="M 40 200 Q 30 120 70 60 Q 60 130 75 195 Z" fill="#ffd700" opacity=".35"/>
@@ -319,17 +431,18 @@
   ];
 
   const EXERCISES = [
-    '🏋️ ベンチプレス',
-    '🦵 スクワット',
-    '🙇 腕立て伏せ',
-    '💪 ダンベルカール',
-    '🤸 懸垂',
-    '🏃 バーピージャンプ',
+    { key: 'bench',  label: '🏋️ ベンチプレス' },
+    { key: 'squat',  label: '🦵 スクワット' },
+    { key: 'pushup', label: '🙇 腕立て伏せ' },
+    { key: 'curl',   label: '💪 ダンベルカール' },
+    { key: 'pullup', label: '🤸 懸垂' },
+    { key: 'burpee', label: '🏃 バーピージャンプ' },
   ];
 
   const PERFECT_GAIN = 12;
   const GOOD_GAIN = 5;
   const MISS_LOSS = 6;
+  const REP_MS = 700; // input lock while the rep animation plays
 
   // ---------- state ----------
   let exp = 0;
@@ -337,6 +450,8 @@
   let combo = 0;
   let bestCombo = 0;
   let running = false;
+  let currentEx = EXERCISES[0];
+  let geom = null; // last drawn body geometry, for equipment placement
 
   // gauge state
   let needlePos = 0;      // 0..1
@@ -414,6 +529,7 @@
     const bicep = lerp(6, 20);
     const armY = 100;
     const armLen = lerp(30, 40);
+    const fists = {};
     for (const sign of [-1, 1]) {
       const side = sign < 0 ? 'l' : 'r';
       const shoulderX = cx + sign * (shoulderW - 4);
@@ -435,6 +551,7 @@
       fa.setAttribute('y', armY - 26);
       $('fist-' + side).setAttribute('cx', elbowX);
       $('fist-' + side).setAttribute('cy', armY - 30);
+      fists[side] = { x: elbowX, y: armY - 30 };
     }
 
     // legs
@@ -446,6 +563,24 @@
 
     // aura at legendary
     $('aura').setAttribute('opacity', m >= 1 ? '1' : '0');
+
+    geom = { cx, shoulderW, fists };
+    positionEquipment();
+  }
+
+  // place held equipment on the current body geometry
+  function positionEquipment() {
+    if (!geom) return;
+    const { cx, shoulderW, fists } = geom;
+    // squat barbell across the shoulders
+    const half = shoulderW + 26;
+    $('bbq-bar').setAttribute('x', cx - half);
+    $('bbq-bar').setAttribute('width', half * 2);
+    $('bbq-pl').setAttribute('x', cx - half - 5);
+    $('bbq-pr').setAttribute('x', cx + half - 4);
+    // dumbbells in the fists
+    $('db-l').setAttribute('transform', `translate(${fists.l.x} ${fists.l.y})`);
+    $('db-r').setAttribute('transform', `translate(${fists.r.x} ${fists.r.y})`);
   }
 
   // flex pose animation on success
@@ -453,6 +588,9 @@
     character.classList.remove('flash');
     void character.offsetWidth;
     character.classList.add('flash');
+    character.classList.remove('go');
+    void character.offsetWidth;
+    character.classList.add('go');
     $('sweat').setAttribute('opacity', '1');
     setTimeout(() => $('sweat').setAttribute('opacity', '0'), 500);
   }
@@ -532,14 +670,15 @@
     bestCombo = Math.max(bestCombo, combo);
     $('combo').textContent = combo >= 2 ? `${combo} コンボ! 🔥` : '';
 
-    // brief lock then new round
+    // lock input while the rep animation plays, then new round
     inputLocked = true;
-    setTimeout(newRound, 450);
+    setTimeout(newRound, REP_MS);
   }
 
   // ---------- rounds ----------
   function newRound() {
     inputLocked = false;
+    character.classList.remove('go');
     // randomize zone & direction; difficulty scales with rank
     zoneCenter = 0.2 + Math.random() * 0.6;
     speed = 0.55 + rankIdx * 0.14 + Math.random() * 0.1;
@@ -547,8 +686,16 @@
     perfectHalf = Math.max(0.028, 0.045 - rankIdx * 0.002);
     needlePos = Math.random() < 0.5 ? 0 : 1;
     needleDir = needlePos === 0 ? 1 : -1;
-    $('exercise-label').textContent = EXERCISES[Math.floor(Math.random() * EXERCISES.length)];
+    setExercise(EXERCISES[Math.floor(Math.random() * EXERCISES.length)]);
     layoutZones();
+  }
+
+  function setExercise(ex) {
+    currentEx = ex;
+    $('exercise-label').textContent = ex.label;
+    for (const e of EXERCISES) character.classList.remove('ex-' + e.key);
+    character.classList.add('ex-' + ex.key);
+    positionEquipment();
   }
 
   function layoutZones() {
