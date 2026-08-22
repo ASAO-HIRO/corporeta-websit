@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>パワフル野球 - かんたん版</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="wrap">
+    <h1>⚾ パワフル野球 <span class="sub">かんたん版</span></h1>
+    <canvas id="game" width="960" height="640" tabindex="0"></canvas>
+    <div id="help">
+      <div class="col">
+        <h2>打撃</h2>
+        <ul>
+          <li><b>← ↑ → ↓</b> ミートカーソル移動</li>
+          <li><b>スペース</b> スイング</li>
+          <li><b>Z</b> 強振 / ミート打ち 切替</li>
+          <li><b>X</b> バント（構える／解除）</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h2>投球</h2>
+        <ul>
+          <li><b>1〜6</b> 球種選択</li>
+          <li><b>← ↑ → ↓</b> コース指定</li>
+          <li><b>スペース</b> 投球</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h2>その他</h2>
+        <ul>
+          <li><b>スペース / Enter</b> 決定・メッセージ送り</li>
+          <li><b>M</b> BGM風の効果音 ON/OFF</li>
+          <li><b>R</b> タイトルへ戻る</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
