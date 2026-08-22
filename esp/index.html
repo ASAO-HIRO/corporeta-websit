@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESP診断 — ビジネス資質診断テスト</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#1e40af;--blue-l:#3b82f6;--green:#059669;--purple:#7c3aed;
+  --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;
+}
+body{font-family:'Noto Sans JP',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+
+/* Screens */
+.screen{display:none;min-height:100vh}
+.screen.active{display:block}
+
+/* Header */
+.app-header{background:var(--blue);color:#fff;padding:.875rem 1.5rem;position:sticky;top:0;z-index:100;display:none;align-items:center;gap:1rem}
+.app-header.visible{display:flex}
+.hd-brand{font-size:1.05rem;font-weight:700;letter-spacing:.04em}
+.hd-sub{font-size:.68rem;opacity:.75;margin-top:1px}
+.hd-prog{margin-left:auto;font-size:.75rem;opacity:.9;white-space:nowrap}
+.prog-rail{height:3px;background:rgba(255,255,255,.25);display:none}
+.prog-rail.visible{display:block}
+.prog-fill{height:100%;background:#fff;transition:width .4s ease;width:0}
+
+/* Container */
+.container{max-width:760px;margin:0 auto;padding:1.5rem 1rem 5rem}
+
+/* Card */
+.card{background:var(--card);border-radius:16px;padding:2rem;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:1.5rem}
+
+/* ── INTRO ── */
+.intro-hero{background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);border-radius:20px;padding:3rem 2rem;color:#fff;text-align:center;margin-bottom:1.5rem}
+.esp-badge{display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.12em;padding:.25rem .875rem;border-radius:999px;margin-bottom:1rem}
+.intro-hero h1{font-size:1.875rem;font-weight:700;margin-bottom:.625rem}
+.intro-hero p{font-size:.9rem;opacity:.88;max-width:460px;margin:0 auto}
+.meta-row{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.meta-card{flex:1;min-width:130px;background:var(--card);border-radius:12px;padding:1.25rem;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.meta-icon{font-size:1.75rem;margin-bottom:.375rem}
+.meta-val{font-size:1.1rem;font-weight:700}
+.meta-lbl{font-size:.68rem;color:var(--muted);margin-top:2px}
+.axes-list{list-style:none;display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.75rem}
+.axes-list li{display:flex;align-items:flex-start;gap:.875rem;background:var(--card);border-radius:10px;padding:1rem 1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.ax-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:.35rem}
+.ax-name{font-weight:700;font-size:.9rem}
+.ax-desc{font-size:.78rem;color:var(--muted);margin-top:2px}
+.notice-box{background:#f8fafc;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:.78rem;color:var(--muted);line-height:1.85}
+.btn-start{width:100%;padding:1rem;background:var(--blue);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.btn-start:hover{background:#1e3a8a}
+
+/* ── SECTION SCREEN ── */
+.sec-header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem}
+.sec-num{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;font-weight:700;flex-shrink:0}
+.sec-title{font-size:1.2rem;font-weight:700}
+.sec-subtitle{font-size:.78rem;color:var(--muted);margin-top:3px}
+.sec-count{font-size:.72rem;color:var(--muted);margin-top:4px}
+.scale-legend{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border-radius:10px;padding:.75rem 1rem;margin-bottom:1.5rem;font-size:.72rem;color:var(--muted)}
+.scale-legend strong{font-size:.78rem;color:var(--text)}
+
+/* Question */
+.q-item{padding:1rem 0;border-bottom:1px solid var(--border)}
+.q-item:last-child{border-bottom:none}
+.q-item.error{background:#fef2f2;border-radius:8px;padding:1rem;margin:0 -.5rem}
+.q-text{font-size:.875rem;margin-bottom:.875rem;display:flex;gap:.625rem;align-items:flex-start}
+.q-n{font-size:.68rem;font-weight:700;color:var(--muted);min-width:28px;padding-top:3px;flex-shrink:0}
+.q-scale{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.scale-end{font-size:.65rem;color:var(--muted);line-height:1.3;max-width:68px}
+.q-btns{display:flex;gap:.5rem}
+.q-btn{
+  width:40px;height:40px;border:2px solid var(--border);border-radius:50%;background:#fff;
+  cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted);
+  transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:inherit;
+}
+.q-btn:hover:not(.sel){border-color:var(--sec-color);color:var(--sec-color)}
+.q-btn.sel{background:var(--sec-color);border-color:var(--sec-color);color:#fff}
+
+/* Nav */
+.nav-bar{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;margin-top:2rem;gap:.875rem}
+.err-msg{font-size:.78rem;color:#dc2626;display:none;width:100%;order:-1}
+.btn-nav{padding:.75rem 1.625rem;border-radius:10px;font-size:.9rem;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-back{background:#fff;color:var(--text);border:2px solid var(--border)}
+.btn-back:hover{border-color:#94a3b8}
+.btn-next{background:var(--blue);color:#fff;border:2px solid var(--blue)}
+.btn-next:hover{background:#1e3a8a}
+
+/* ── RESULTS ── */
+.result-hero{background:linear-gradient(135deg,#1e3a8a,#3b82f6);border-radius:20px;padding:2.5rem 2rem;color:#fff;text-align:center;margin-bottom:1.5rem}
+.type-badge{display:inline-block;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);font-size:.68rem;letter-spacing:.12em;padding:.3rem 1rem;border-radius:999px;margin-bottom:.875rem}
+.type-name{font-size:2rem;font-weight:700;margin-bottom:.5rem}
+.type-desc{font-size:.875rem;opacity:.87;max-width:420px;margin:0 auto;line-height:1.75}
+.scores-row{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.score-card{flex:1;min-width:140px;background:#fff;border-radius:12px;padding:1.25rem;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06);border-top:4px solid transparent}
+.score-pct{font-size:2rem;font-weight:700}
+.score-pct sup{font-size:1rem}
+.score-lbl{font-size:.72rem;font-weight:700;color:var(--muted);margin-top:3px}
+.score-rank{font-size:.68rem;font-weight:700;margin-top:4px}
+.score-bar-rail{background:#f1f5f9;border-radius:4px;height:6px;margin-top:.875rem;overflow:hidden}
+.score-bar{height:100%;border-radius:4px;transition:width .9s ease;width:0}
+.radar-wrap{background:#fff;border-radius:16px;padding:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:1.5rem;text-align:center}
+.radar-wrap h3{font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:1rem}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.detail-card{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.detail-card h4{font-size:.8rem;font-weight:700;margin-bottom:.625rem}
+.detail-card ul{list-style:none}
+.detail-card li{font-size:.8rem;color:var(--muted);padding:.25rem 0;display:flex;gap:.5rem;align-items:flex-start;line-height:1.5}
+.detail-card li::before{content:"•";font-weight:700;flex-shrink:0}
+.career-tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem}
+.career-tag{background:#f3f0ff;color:#7c3aed;border-radius:6px;padding:.275rem .75rem;font-size:.78rem;font-weight:500}
+.btn-retry{width:100%;padding:1rem;background:#fff;color:var(--blue);border:2px solid var(--blue);border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-retry:hover{background:#eff6ff}
+
+@media(max-width:500px){
+  .meta-row,.scores-row{flex-direction:column}
+  .detail-grid{grid-template-columns:1fr}
+  .intro-hero h1{font-size:1.5rem}
+  .q-btn{width:36px;height:36px;font-size:.78rem}
+  .scale-end{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="app-header" id="app-header">
+  <div>
+    <div class="hd-brand">ESP診断</div>
+    <div class="hd-sub">ビジネス資質診断テスト</div>
+  </div>
+  <div class="hd-prog" id="hd-prog"></div>
+</header>
+<div class="prog-rail" id="prog-rail">
+  <div class="prog-fill" id="prog-fill"></div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     INTRO
+════════════════════════════════════════════ -->
+<div id="screen-intro" class="screen active">
+  <div class="container" style="max-width:680px">
+    <div class="intro-hero">
+      <div class="esp-badge">ESP DIAGNOSIS</div>
+      <h1>ビジネス資質診断テスト</h1>
+      <p>市場価値基準からビジネスポテンシャル・ビジネスセンス・ストレス耐性を科学的に分析します</p>
+    </div>
+
+    <div class="meta-row">
+      <div class="meta-card">
+        <div class="meta-icon">⏱</div>
+        <div class="meta-val">10〜15分</div>
+        <div class="meta-lbl">所要時間</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-icon">📋</div>
+        <div class="meta-val">60問</div>
+        <div class="meta-lbl">設問数</div>
+      </div>
+      <div class="meta-card">
+        <div class="meta-icon">📊</div>
+        <div class="meta-val">3指標</div>
+        <div class="meta-lbl">測定軸</div>
+      </div>
+    </div>
+
+    <ul class="axes-list">
+      <li>
+        <span class="ax-dot" style="background:#1e40af"></span>
+        <div>
+          <div class="ax-name">ビジネスポテンシャル</div>
+          <div class="ax-desc">リーダーシップ・推進力・学習意欲・問題解決力など、業務遂行の潜在能力を測定します</div>
+        </div>
+      </li>
+      <li>
+        <span class="ax-dot" style="background:#059669"></span>
+        <div>
+          <div class="ax-name">ビジネスセンス</div>
+          <div class="ax-desc">市場感覚・顧客志向・分析力・コミュニケーション能力など、ビジネス感度を測定します</div>
+        </div>
+      </li>
+      <li>
+        <span class="ax-dot" style="background:#7c3aed"></span>
+        <div>
+          <div class="ax-name">ストレス耐性</div>
+          <div class="ax-desc">精神的安定性・回復力・感情コントロール・プレッシャー下での安定性を測定します</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="notice-box">
+      各設問について、あなた自身に最もあてはまると思う回答を選んでください。<br>
+      正解・不正解はありません。直感的に素直に答えることをお勧めします。<br>
+      回答はすべてブラウザ内で処理され、外部サーバーに送信されることはありません。
+    </div>
+
+    <button class="btn-start" onclick="startTest()">診断をはじめる →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 1 — ビジネスポテンシャル
+════════════════════════════════════════════ -->
+<div id="screen-s1" class="screen">
+  <div class="container" style="--sec-color:#1e40af">
+    <div class="sec-header">
+      <div class="sec-num" style="background:#1e40af">01</div>
+      <div>
+        <div class="sec-title">ビジネスポテンシャル</div>
+        <div class="sec-subtitle">業務適性・潜在能力の測定</div>
+        <div class="sec-count">第1部 / 全3部 ・ 20問</div>
+      </div>
+    </div>
+    <div class="scale-legend">
+      <span>1 = 全くそう思わない</span>
+      <strong>5段階で回答してください</strong>
+      <span>5 = 非常にそう思う</span>
+    </div>
+    <div class="card" id="s1-qs"></div>
+    <div class="nav-bar">
+      <div class="err-msg" id="s1-err">⚠ 未回答の設問があります。すべての設問にご回答ください。</div>
+      <button class="btn-nav btn-next" onclick="nextSection(1)">次のセクションへ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 2 — ビジネスセンス
+════════════════════════════════════════════ -->
+<div id="screen-s2" class="screen">
+  <div class="container" style="--sec-color:#059669">
+    <div class="sec-header">
+      <div class="sec-num" style="background:#059669">02</div>
+      <div>
+        <div class="sec-title">ビジネスセンス</div>
+        <div class="sec-subtitle">市場感覚・顧客志向の測定</div>
+        <div class="sec-count">第2部 / 全3部 ・ 20問</div>
+      </div>
+    </div>
+    <div class="scale-legend">
+      <span>1 = 全くそう思わない</span>
+      <strong>5段階で回答してください</strong>
+      <span>5 = 非常にそう思う</span>
+    </div>
+    <div class="card" id="s2-qs"></div>
+    <div class="nav-bar">
+      <button class="btn-nav btn-back" onclick="goBack(2)">← 前へ戻る</button>
+      <div class="err-msg" id="s2-err">⚠ 未回答の設問があります。すべての設問にご回答ください。</div>
+      <button class="btn-nav btn-next" onclick="nextSection(2)">次のセクションへ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SECTION 3 — ストレス耐性
+════════════════════════════════════════════ -->
+<div id="screen-s3" class="screen">
+  <div class="container" style="--sec-color:#7c3aed">
+    <div class="sec-header">
+      <div class="sec-num" style="background:#7c3aed">03</div>
+      <div>
+        <div class="sec-title">ストレス耐性</div>
+        <div class="sec-subtitle">精神的安定性・回復力の測定</div>
+        <div class="sec-count">第3部 / 全3部 ・ 20問</div>
+      </div>
+    </div>
+    <div class="scale-legend">
+      <span>1 = 全くそう思わない</span>
+      <strong>5段階で回答してください</strong>
+      <span>5 = 非常にそう思う</span>
+    </div>
+    <div class="card" id="s3-qs"></div>
+    <div class="nav-bar">
+      <button class="btn-nav btn-back" onclick="goBack(3)">← 前へ戻る</button>
+      <div class="err-msg" id="s3-err">⚠ 未回答の設問があります。すべての設問にご回答ください。</div>
+      <button class="btn-nav btn-next" onclick="showResults()">診断結果を見る →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     RESULTS
+════════════════════════════════════════════ -->
+<div id="screen-result" class="screen">
+  <div class="container" style="max-width:700px">
+    <div id="result-hero" class="result-hero"></div>
+    <div class="scores-row" id="scores-row"></div>
+    <div class="radar-wrap">
+      <h3>総合レーダーチャート</h3>
+      <svg id="radar-svg" viewBox="0 0 400 400" width="100%" style="max-width:340px;display:block;margin:0 auto"></svg>
+    </div>
+    <div class="detail-grid" id="detail-grid"></div>
+    <button class="btn-retry" onclick="retryTest()">もう一度診断する</button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════
+   DATA
+════════════════════════════════════ */
+const SECTIONS = [
+  {
+    id: 's1', key: 'bp', color: '#1e40af', short: 'BP', label: 'ビジネスポテンシャル',
+    questions: [
+      '新しいプロジェクトの際に、自ら率先して計画を立てることが多い',
+      '困難な状況でも、最後までやり遂げる粘り強さがある',
+      '目標を設定し、達成に向けて計画的に行動することができる',
+      '自分の考えを相手にわかりやすく伝えることができる',
+      'チームをまとめ、方向性を示すことが得意だ',
+      '新しいスキルや知識を積極的に習得しようとしている',
+      '問題が発生したとき、根本原因を分析して解決策を考える',
+      '高い目標に対して、意欲的に取り組んでいる',
+      '物事を改善するためのアイデアを積極的に提案する',
+      '多様な意見を取り入れて、より良い結論を導き出せる',
+      'プレッシャーのある状況でも、冷静に判断できる',
+      '人と信頼関係を築くことが得意だ',
+      '変化する環境に対して、柔軟に適応することができる',
+      '自分の強みを仕事に活かすことができている',
+      '長期的な視点で物事を考えることができる',
+      '責任ある役割を積極的に引き受ける',
+      '失敗から学び、次に活かすことができる',
+      '周囲を巻き込んで物事を推進する力がある',
+      '優先順位をつけて効率的に仕事を進められる',
+      '自分の行動が組織全体に与える影響を常に意識している',
+    ]
+  },
+  {
+    id: 's2', key: 'bs', color: '#059669', short: 'BS', label: 'ビジネスセンス',
+    questions: [
+      '顧客のニーズを正確に理解し、それに応える提案ができる',
+      '市場のトレンドや競合他社の動向を日頃から把握している',
+      '数字やデータを分析して、判断の根拠を示せる',
+      '費用対効果を考慮しながら仕事を進めている',
+      '自分のアクションが会社の収益にどう影響するかを意識している',
+      '相手の立場に立ったコミュニケーションを心がけている',
+      '交渉の場面で、双方にとって有益な結果を追求する',
+      '会社の短期・長期目標を理解した上で行動している',
+      '社内外の情報を適切に収集し、業務に活用している',
+      '課題に対して複数の解決策を検討し比較できる',
+      'プレゼンテーションで相手を納得させる力がある',
+      '新しいビジネスチャンスを見つける感覚がある',
+      '業務プロセスの効率化を意識的に考えることが好きだ',
+      'チームの成果を最大化するための行動を取っている',
+      '顧客からのフィードバックを業務改善に積極的に活かしている',
+      'リスクを適切に評価した上で意思決定している',
+      '会社の方針・戦略を理解して日常業務に反映させている',
+      '多角的な視点で問題を捉えることができる',
+      '関係者との連携を大切にして仕事を進めている',
+      'ビジネス環境の急激な変化に素早く対応できる',
+    ]
+  },
+  {
+    id: 's3', key: 'st', color: '#7c3aed', short: 'ST', label: 'ストレス耐性',
+    questions: [
+      '仕事量が急激に増えても、焦らず冷静に対処できる',
+      '上司や同僚から批判を受けても、感情的にならずに受け入れられる',
+      '締め切りが迫った状況でも、集中力を維持できる',
+      '困難な状況でも、前向きな気持ちを保てる',
+      '職場での人間関係のトラブルを上手く処理できる',
+      '仕事とプライベートのバランスを意識して生活している',
+      '失敗しても、過度に落ち込まず早く立ち直ることができる',
+      '不確かな状況でも、安定した精神状態を保てる',
+      '意見の相違がある場面でも、冷静に話し合いができる',
+      '長時間労働が続いても、仕事の質を一定に保てる',
+      'プレッシャーがあるほど、むしろパフォーマンスが上がる',
+      '困難な状況を成長の機会として前向きに捉えることができる',
+      '精神的に辛いときでも、自分なりの気分転換の方法を持っている',
+      '他者の感情に影響されすぎず、自分の判断を保てる',
+      '多くのタスクを同時にこなしても、混乱せずに対応できる',
+      '変化や不確実性に対して、不安よりも好奇心を感じる',
+      '周囲から高い期待をかけられると、それに応えようとする意欲が湧く',
+      'ミスをした後も引きずらず、次の仕事に素早く集中できる',
+      '強いプレッシャー下でも感情をコントロールして冷静に判断できる',
+      'ストレスを感じたとき、適切なセルフケアの方法を知っている',
+    ]
+  }
+];
+
+/* answers[key][index] = 1-5 */
+const answers = { bp: {}, bs: {}, st: {} };
+
+/* ════════════════════════════════════
+   SCREEN MANAGEMENT
+════════════════════════════════════ */
+function showScreen(id, pct) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+
+  const hdr = document.getElementById('app-header');
+  const rail = document.getElementById('prog-rail');
+  const fill = document.getElementById('prog-fill');
+  const prog = document.getElementById('hd-prog');
+
+  if (id === 'screen-intro') {
+    hdr.classList.remove('visible');
+    rail.classList.remove('visible');
+  } else {
+    hdr.classList.add('visible');
+    rail.classList.add('visible');
+    fill.style.width = (pct || 0) + '%';
+    prog.textContent = Math.round(pct || 0) + '% 完了';
+  }
+}
+
+function startTest() {
+  renderSection(0);
+  showScreen('screen-s1', 5);
+}
+
+function nextSection(num) {
+  const sec = SECTIONS[num - 1];
+  const errEl = document.getElementById(sec.id + '-err');
+  const missing = sec.questions.findIndex((_, i) => answers[sec.key][i] == null);
+  if (missing >= 0) {
+    errEl.style.display = 'block';
+    const el = document.getElementById(sec.id + '-q' + missing);
+    if (el) { el.classList.add('error'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    return;
+  }
+  errEl.style.display = 'none';
+  if (num === 1) { renderSection(1); showScreen('screen-s2', 38); }
+  else if (num === 2) { renderSection(2); showScreen('screen-s3', 70); }
+}
+
+function goBack(num) {
+  if (num === 2) showScreen('screen-s1', 5);
+  else if (num === 3) showScreen('screen-s2', 38);
+}
+
+function retryTest() {
+  SECTIONS.forEach(s => { answers[s.key] = {}; });
+  showScreen('screen-intro');
+}
+
+/* ════════════════════════════════════
+   RENDER QUESTIONS
+════════════════════════════════════ */
+function renderSection(idx) {
+  const sec = SECTIONS[idx];
+  const wrap = document.getElementById(sec.id + '-qs');
+  wrap.innerHTML = sec.questions.map((q, i) => `
+    <div class="q-item" id="${sec.id}-q${i}">
+      <div class="q-text"><span class="q-n">Q${String(i+1).padStart(2,'0')}</span><span>${q}</span></div>
+      <div class="q-scale">
+        <span class="scale-end">全くそう思わない</span>
+        <div class="q-btns">
+          ${[1,2,3,4,5].map(v => `<button class="q-btn${answers[sec.key][i]===v?' sel':''}"
+            onclick="setAns('${sec.key}',${i},${v},this)">${v}</button>`).join('')}
+        </div>
+        <span class="scale-end" style="text-align:right">非常にそう思う</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setAns(key, idx, val, btn) {
+  answers[key][idx] = val;
+  btn.closest('.q-btns').querySelectorAll('.q-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  btn.closest('.q-item').classList.remove('error');
+}
+
+/* ════════════════════════════════════
+   SCORING
+════════════════════════════════════ */
+function calcPct(key) {
+  const n = SECTIONS.find(s => s.key === key).questions.length;
+  let sum = 0;
+  for (let i = 0; i < n; i++) sum += (answers[key][i] || 3);
+  return Math.round(sum / (n * 5) * 100);
+}
+
+function getLevel(pct) {
+  if (pct >= 80) return { label: 'A（非常に高い）', color: '#059669' };
+  if (pct >= 65) return { label: 'B（高い）',       color: '#0891b2' };
+  if (pct >= 50) return { label: 'C（標準）',       color: '#d97706' };
+  if (pct >= 35) return { label: 'D（やや低い）',   color: '#ea580c' };
+  return              { label: 'E（低い）',        color: '#dc2626' };
+}
+
+/* ════════════════════════════════════
+   TYPE DEFINITIONS
+════════════════════════════════════ */
+const TYPES = [
+  {
+    name: 'エース型',
+    test: (b,s,t) => b>=75 && s>=75 && t>=75,
+    desc: '3つの指標すべてで高い水準を誇るオールラウンダー。高いポテンシャルと鋭いビジネス感覚、強靭なストレス耐性を兼ね備えた市場価値の高い人材タイプです。',
+    strengths: ['圧倒的な目標達成力','チームを牽引するリーダーシップ','あらゆる状況での安定したパフォーマンス','優れた市場感覚と顧客洞察力'],
+    growth: ['完璧主義になりすぎず適切に委任する','他者の成長にも意識を向ける'],
+    careers: ['経営幹部・役員','プロジェクトリーダー','事業開発責任者','営業責任者']
+  },
+  {
+    name: '戦略実行型',
+    test: (b,s,t) => b>=70 && s>=70,
+    desc: '高い推進力と鋭いビジネス感覚を併せ持ち、戦略立案から実行まで一貫してリードできるタイプ。組織の中核を担う存在です。',
+    strengths: ['戦略的思考と実行力の両立','ビジネス分析・説得力','チャレンジ精神','リーダーシップ'],
+    growth: ['ストレスマネジメントの強化','部下・チームへの配慮','自己ケアの習慣化'],
+    careers: ['コンサルタント','営業戦略担当','マーケティングマネージャー','プロダクトマネージャー']
+  },
+  {
+    name: 'タフリーダー型',
+    test: (b,s,t) => b>=70 && t>=70,
+    desc: '強い推進力と高いストレス耐性を持ち、困難な局面でも安定したリーダーシップを発揮できるタイプ。危機対応・変革推進に強みを発揮します。',
+    strengths: ['プレッシャー下での安定感','強い粘り強さと実行力','チームの求心力','危機対応・問題解決力'],
+    growth: ['市場・顧客感覚のさらなる磨き込み','データ活用・分析スキルの強化'],
+    careers: ['プロジェクトマネージャー','営業マネージャー','オペレーション責任者','人事・組織管理職']
+  },
+  {
+    name: '安定マーケター型',
+    test: (b,s,t) => s>=70 && t>=70,
+    desc: '高いビジネス感覚と精神的安定性が強み。顧客ニーズを正確に把握し、感情に流されない冷静な判断力で着実に成果を上げるタイプです。',
+    strengths: ['卓越した顧客洞察力','感情的知性と共感力','論理的分析力','長期的な信頼関係構築'],
+    growth: ['主体的な提案・リーダーシップの発揮','より積極的な行動力・スピード感'],
+    careers: ['マーケター','カスタマーサクセス','UXリサーチャー','アカウントマネージャー']
+  },
+  {
+    name: 'パイオニア型',
+    test: (b,s,t) => b>=70,
+    desc: '高い推進力と強いチャレンジ精神を持つ行動派。目標に向かって積極的に挑戦し、組織を動かすエネルギーを持ったタイプです。',
+    strengths: ['高い行動力・実行スピード','強い目標達成志向','チャレンジ精神','周囲を巻き込む推進力'],
+    growth: ['ストレス管理と持続性の強化','市場・顧客視点の意識的な強化','じっくり分析する習慣'],
+    careers: ['起業家・スタートアップ','新規事業開発','営業・フロントポジション','プロジェクトリード']
+  },
+  {
+    name: 'センサー型',
+    test: (b,s,t) => s>=70,
+    desc: '優れたビジネス感覚と市場への深い洞察力が強み。顧客・市場・競合を鋭く分析し、的確なビジネス判断を下せるタイプです。',
+    strengths: ['鋭い市場洞察力','顧客中心の発想力','論理的分析・説明力','柔軟な対応力'],
+    growth: ['実行力・推進力のさらなる強化','リーダーシップの発揮','意思決定スピードの向上'],
+    careers: ['マーケティング担当','商品企画','経営コンサルタント','データアナリスト']
+  },
+  {
+    name: 'ステイブル型',
+    test: (b,s,t) => t>=70,
+    desc: '高いストレス耐性と精神的安定性が際立つタイプ。どんな環境下でも冷静を保ち、周囲に安心感と信頼感を与える存在です。',
+    strengths: ['卓越した精神的安定性','感情のコントロール力','強い信頼感・忍耐力','長期継続できる粘り強さ'],
+    growth: ['積極的な自己発信の練習','ビジネス知識・スキルの拡充','リーダーシップの発揮機会を増やす'],
+    careers: ['HR・人事担当','カウンセラー・コーチ','品質管理・CS担当','チームサポートリーダー']
+  },
+  {
+    name: 'バランス型',
+    test: (b,s,t) => b>=50 && s>=50 && t>=50,
+    desc: '3つの指標がバランス良く揃ったオールラウンドタイプ。特定の突出した強みはないものの、幅広い業務に安定して対応できる頼もしい存在です。',
+    strengths: ['高いバランス感覚と適応力','チームとの協調性','安定したパフォーマンス','幅広い対応力'],
+    growth: ['特定分野への集中的な強化','得意軸をさらに尖らせる','専門スキルの深掘り'],
+    careers: ['プロジェクトコーディネーター','ゼネラリスト管理職','チームリーダー補佐','クロスファンクション担当']
+  },
+  {
+    name: 'ポテンシャル型',
+    test: () => true,
+    desc: '現在は発展途上ですが、大きな可能性を秘めています。経験を積み意識的に行動することで急速な成長が期待できるタイプです。',
+    strengths: ['素直な学習意欲','柔軟な思考力','成長ポテンシャル','フレッシュな視点'],
+    growth: ['実務経験の積み上げとOJTの活用','メンター・ロールモデルからの学習','自己理解の深化と強み発見','スキルの意識的・計画的な強化'],
+    careers: ['各部門の若手ポジション','トレーニープログラム','特定専門職へのチャレンジ']
+  }
+];
+
+function getType(bp, bs, st) {
+  return TYPES.find(t => t.test(bp, bs, st));
+}
+
+/* ════════════════════════════════════
+   SHOW RESULTS
+════════════════════════════════════ */
+function showResults() {
+  const sec = SECTIONS[2];
+  const errEl = document.getElementById('s3-err');
+  const missing = sec.questions.findIndex((_, i) => answers[sec.key][i] == null);
+  if (missing >= 0) {
+    errEl.style.display = 'block';
+    const el = document.getElementById('s3-q' + missing);
+    if (el) { el.classList.add('error'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const bp = calcPct('bp'), bs = calcPct('bs'), st = calcPct('st');
+  const type = getType(bp, bs, st);
+
+  /* Hero */
+  document.getElementById('result-hero').innerHTML = `
+    <div class="type-badge">YOUR TYPE</div>
+    <div class="type-name">${type.name}</div>
+    <div class="type-desc">${type.desc}</div>
+  `;
+
+  /* Score cards */
+  const scoreData = [
+    { label: 'ビジネスポテンシャル', pct: bp, color: '#1e40af' },
+    { label: 'ビジネスセンス',       pct: bs, color: '#059669' },
+    { label: 'ストレス耐性',         pct: st, color: '#7c3aed' },
+  ];
+  document.getElementById('scores-row').innerHTML = scoreData.map(s => {
+    const lv = getLevel(s.pct);
+    return `
+      <div class="score-card" style="border-top-color:${s.color}">
+        <div class="score-pct" style="color:${s.color}">${s.pct}<sup>%</sup></div>
+        <div class="score-lbl">${s.label}</div>
+        <div class="score-rank" style="color:${lv.color}">${lv.label}</div>
+        <div class="score-bar-rail"><div class="score-bar" data-w="${s.pct}" style="background:${s.color}"></div></div>
+      </div>`;
+  }).join('');
+
+  /* Radar chart */
+  drawRadar(bp / 100, bs / 100, st / 100);
+
+  /* Detail */
+  document.getElementById('detail-grid').innerHTML = `
+    <div class="detail-card">
+      <h4 style="color:#059669">✓ あなたの強み</h4>
+      <ul>${type.strengths.map(s => `<li style="--ac:#059669"><span>${s}</span></li>`).join('')}</ul>
+    </div>
+    <div class="detail-card">
+      <h4 style="color:#f59e0b">↗ 成長ポイント</h4>
+      <ul>${type.growth.map(s => `<li style="--ac:#f59e0b"><span>${s}</span></li>`).join('')}</ul>
+    </div>
+    <div class="detail-card" style="grid-column:1/-1">
+      <h4 style="color:#7c3aed">💼 向いている職種・役割</h4>
+      <div class="career-tags">${type.careers.map(s => `<span class="career-tag">${s}</span>`).join('')}</div>
+    </div>
+  `;
+
+  showScreen('screen-result', 100);
+
+  /* Animate bars */
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll('.score-bar').forEach(b => { b.style.width = b.dataset.w + '%'; });
+  }));
+}
+
+/* ════════════════════════════════════
+   RADAR CHART (SVG)
+════════════════════════════════════ */
+function pt(cx, cy, r, deg) {
+  const rad = (deg - 90) * Math.PI / 180;
+  return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+}
+
+function drawRadar(bpR, bsR, stR) {
+  const cx = 200, cy = 210, maxR = 115;
+  const angles = [0, 120, 240];
+  const ratios = [bpR, bsR, stR];
+  const colors = ['#1e40af', '#059669', '#7c3aed'];
+  const labelLines = [['ビジネス','ポテンシャル'], ['ビジネス','センス'], ['ストレス','耐性']];
+
+  let svg = '';
+
+  /* Grid */
+  [.2,.4,.6,.8,1].forEach(f => {
+    const pts = angles.map(a => pt(cx,cy,maxR*f,a));
+    svg += `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#e2e8f0" stroke-width="${f===1?1.5:1}"/>`;
+  });
+
+  /* Axis lines */
+  angles.forEach(a => {
+    const [x,y] = pt(cx,cy,maxR,a);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>`;
+  });
+
+  /* Grid labels */
+  [40,60,80,100].forEach((v,i) => {
+    const [x,y] = pt(cx,cy,maxR*v/100,0);
+    svg += `<text x="${x+3}" y="${y-2}" font-size="9" fill="#94a3b8">${v}%</text>`;
+  });
+
+  /* Data polygon */
+  const dataPts = ratios.map((r,i) => pt(cx,cy,maxR*r,angles[i]));
+  svg += `<polygon points="${dataPts.map(p=>p.join(',')).join(' ')}" fill="rgba(59,130,246,.15)" stroke="#3b82f6" stroke-width="2" stroke-linejoin="round"/>`;
+
+  /* Data points */
+  dataPts.forEach(([x,y],i) => {
+    svg += `<circle cx="${x}" cy="${y}" r="5.5" fill="${colors[i]}" stroke="#fff" stroke-width="2"/>`;
+  });
+
+  /* Axis labels */
+  angles.forEach((a,i) => {
+    const [lx,ly] = pt(cx,cy,maxR+32,a);
+    const lh = 13;
+    const lines = labelLines[i];
+    const startY = ly - (lines.length-1)*lh/2;
+    lines.forEach((line,li) => {
+      svg += `<text x="${lx}" y="${startY+li*lh}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${colors[i]}" font-family="'Noto Sans JP',sans-serif">${line}</text>`;
+    });
+    const scoreY = startY + lines.length*lh + 3;
+    svg += `<text x="${lx}" y="${scoreY}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${colors[i]}" font-family="'Noto Sans JP',sans-serif">${Math.round(ratios[i]*100)}%</text>`;
+  });
+
+  document.getElementById('radar-svg').innerHTML = svg;
+}
+</script>
+</body>
+</html>
